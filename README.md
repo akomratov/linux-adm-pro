@@ -1,2 +1,2 @@
-# linux-adm-pro
-Linux Admin Pro (hw)
+# OTUS Linux Admin Pro (Home tasks)
+
