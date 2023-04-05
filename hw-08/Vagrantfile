@@ -1,0 +1,57 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "ubuntu/focal64"
+  
+  config.vm.box_check_update = false
+
+  config.vm.define     "lxadmpro-hw08"
+  config.vm.hostname = "lxadmpro-hw08"
+  config.vm.network    "public_network", 
+               bridge: "Intel(R) Dual Band Wireless-AC 8265", 
+                  ip: "192.168.0.148"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name   = "lxadmpro-hw08"
+    vb.gui    = true
+    vb.memory = 1024
+    vb.cpus   = 2
+  end
+  
+  config.vm.synced_folder "./data", "/vagrant", automount: true
+
+  config.vm.provision "file", source: "./keys/id_rsa", destination: "/home/vagrant/.ssh/id_rsa"
+  public_key = File.readlines("./keys/id_rsa.pub").first.strip
+
+  config.vm.provision "shell", inline: <<-SHELL
+
+    echo #{public_key} >> /home/vagrant/.ssh/authorized_keys
+    chmod -R 600 /home/vagrant/.ssh/authorized_keys
+
+    # mkdir -p /home/vagrant/.ssh
+    # chmod 700 /home/vagrant/.ssh
+    # echo 'Host 192.168.0.*' >> /home/vagrant/.ssh/config
+    # echo 'StrictHostKeyChecking no' >> /home/vagrant/.ssh/config
+    # echo 'UserKnownHostsFile /dev/null' >> /home/vagrant/.ssh/config
+    # chmod -R 600 /home/vagrant/.ssh/config
+
+    sudo apt-get update
+
+    # Upgrade the system
+    apt-get full-upgrade -y
+
+    # install additional packages
+    sudo apt-get install -y git net-tools mc nmap
+
+    # set Timezone
+    timedatectl set-timezone Europe/Moscow
+
+    # Upgrade Linux Kernel 5.4.0-146-generic -> 5.15.0-69-generic
+    sudo apt-get install -y linux-image-5.15.0-69-generic linux-headers-5.15.0-69-generic
+
+    reboot
+
+  SHELL
+end
